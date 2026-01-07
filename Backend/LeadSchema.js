@@ -1,4 +1,4 @@
-import mongoose,{ Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 
 
@@ -10,10 +10,10 @@ const Leadschema = new Schema({
     }, email: {
         type: String,
         sparse: true,
-        
+
         required: true,
-        
-         
+
+
     },
     number: {
         type: String,
@@ -29,8 +29,23 @@ const Leadschema = new Schema({
         type: String,
         required: true,
         trim: true
+    },
+    assignedSalesperson: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    lastActivity: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    company: {
+        type: String,
+        required: true,
+        trim: true
     }
-   
+
 
 }, { timestamps: true })
 

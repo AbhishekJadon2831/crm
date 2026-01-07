@@ -5,10 +5,13 @@ import image2 from "../assets/unnamed (1).png";
 import { FiUser, FiMail, FiEye, FiArrowRight, } from "react-icons/fi";
 import { ChartNoAxesCombined, Star } from "lucide-react"
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 
 const Register = () => {
   const [name, setName] = useState("");
+  const [lastname, setLastname] = useState("");
+
   const [workEmail, setWorkEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmpassword, setConfirmpassword] = useState("");
@@ -20,10 +23,15 @@ const Register = () => {
     const res = await fetch("http://localhost:3000/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, workEmail, password, confirmpassword }),
+      body: JSON.stringify({ name,lastname, workEmail, password, confirmpassword }),
     });
     const data = await res.text();
     console.log(data);
+
+    if(!res.ok){
+      toast.error(data || "Register Faild")
+    }
+    toast.success("Register Successfull")
   };
 
   const check = () => {
@@ -59,6 +67,24 @@ const Register = () => {
               placeholder="e.g. John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="w-110 p-4 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
+
+            />
+            <FiUser className="absolute left-98 top-11 text-gray-400 text-[30px]" />
+
+          </div>
+
+
+           <div className="relative">
+
+            <label className="block text-white font-medium mb-2">Last Name</label>
+
+
+            <input
+              type="text"
+              placeholder="Enter your last name"
+              value={lastname}
+              onChange={(e) => setLastname(e.target.value)}
               className="w-110 p-4 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
 
             />

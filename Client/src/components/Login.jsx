@@ -3,6 +3,7 @@ import image from "../assets/groth.jpg"
 import image1 from "../assets/unnamed (1).png"
 import image2 from "../assets/google.png"
 import { FiMail, FiEye } from "react-icons/fi";
+import { toast } from 'react-toastify';
 
 
 const Login = () => {
@@ -20,6 +21,15 @@ const Login = () => {
         });
         const data2 = await res2.json();
         console.log("Login response:", data2);
+
+
+
+        localStorage.setItem("token", data2.token);
+
+        if (!res2.ok) {
+            toast.error(data2.message || "Login Faild")
+        }
+        toast.success("Login Successfull")
 
     }
 
@@ -76,7 +86,7 @@ const Login = () => {
                         </div>
 
                         <button type="submit" className="bg-blue-500 w-110 p-4 rounded-xl font-bold text-white text-[20px]">Sign in </button>
-              
+
 
                         <div className="flex bg-blue-500 w-110 p-5 gap-5 rounded-xl bg-gray-800 border border-gray-600 text-white font-bold justify-center items-center">
                             <img src={image2} alt="image" className="w-5" />

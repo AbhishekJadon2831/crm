@@ -41,12 +41,15 @@ function Navbar() {
                      <CircleCheck className="w-10 text-slate-600 dark:text-slate-400" group-hover:text-white/>
                      <p className="text-slate-600 dark:text-slate-400 text-lg group-hover:text-white">Tasks</p>
                  </Link>
+
+                  
+
              </div>
              <div className="mt-20 ml-10">
-                 <div className="flex items-center flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#283039] transition-colors group">
+                 <Link to="/Setting" className="flex items-center flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#283039] transition-colors group">
                      <Settings className="w-10 text-slate-600 dark:text-slate-400 group-hover:text-white" />
                      <p className="text-slate-600 dark:text-slate-400 text-lg group-hover:text-white">Settings</p>
-                 </div>
+                 </Link>
 
                  <div className="flex items-center gap-5 mt-13 text-lg">
                      <img src={image} alt="image" className="w-10   h-10 rounded-full bg-slate-700 bg-cover bg-center" />

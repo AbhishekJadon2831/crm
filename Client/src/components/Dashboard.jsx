@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import image from "../assets/simple.jpg"
 import { BrickWall, CalendarDays, CircleCheck, CircleCheckBig, CircleUserRound, DollarSign, LayoutDashboard, Plus, Settings, ShieldQuestionMark, TrendingUp, Clock, Video, CircleX, SquarePen } from "lucide-react"
+import { toast } from 'react-toastify';
 function Dashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [name1, setName] = useState("")
@@ -32,10 +33,16 @@ function Dashboard() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed", errorData);
+        const data = await response.json();
+        console.error("Failed", data);
+        toast.error(data.message || "faild");
         return;
       }
+
+      toast.success("Change successfull")
+
+
+
 
       const updatedTask = await response.json();
       setItem(item.map((i) => (i._id === editingId ? updatedTask : i)));
@@ -115,6 +122,14 @@ function Dashboard() {
       const data = await res.json()
       console.log("chack", data);
     }
+
+
+    if (!res.ok) {
+      toast.error(data.message || "faild");
+      return;
+    }
+
+    toast.success("Submit successfull")
 
     // setIsFormOpen(false)
 

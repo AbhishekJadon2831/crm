@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv";
-import express from "express"
+import express, { Router } from "express"
 import cors from "cors"
 import StudentsModel from "./schema.js";
 import connectDB from "./db.js";
@@ -26,19 +26,19 @@ app.use(express.json())
 
 app.post("/register", async (req, res) => {
   try {
-    const { name, workEmail, password, confirmpassword } = req.body;
+    const { name, lastname, workEmail, password, confirmpassword } = req.body;
 
 
 
 
-    const newUser = StudentsModel.create({ name, workEmail, password, confirmpassword })
+    const newUser = StudentsModel.create({ name, lastname, workEmail, password, confirmpassword })
 
 
 
 
     const token = jwt.sign(
       { userId: newUser._id },
-      process.env.JWT_SECRPT_KEY,
+      process.env.REFRESH_SECRPT_KEY,
       { expiresIn: "1h" }
     )
 
@@ -107,12 +107,33 @@ app.post("/lead", async (req, res) => {
 
 app.get("/item3", async (req, res) => {
   try {
-    const item1 = await LeadModel.find();
-    res.json(item1);
+    const { status, lastActivity, salesperson, company } = req.query;
+    let query = {};
+    if (status && status !== "all") {
+      query.status = { $in: status.split(",") };
+    }
+    if (lastActivity && lastActivity !== "Any Time") {
+      const now = new Date();
+      const days = lastActivity === "Last 7 Days" ? 7 : 30;
+      query.lastActivity = { $gte: new Date(now - days * 24 * 60 * 60 * 1000) };
+    }
+    if (salesperson) {
+      query.assignedSalesperson = salesperson;
+    }
+    if (company) {
+      query.company = { $regex: company, $options: "i" };
+    }
+    const leads = await LeadModel.find(query);
+    res.json(leads);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
+
+
+
+
 
 
 
@@ -167,20 +188,20 @@ app.get("/api/pipeline", async (req, res) => {
 
 
 app.post("/api/task", async (req, res) => {
-  const { name1,task,secondtask, date, priority, discription } = req.body;
+  const { name1, task, secondtask, date, priority, discription } = req.body;
   console.log(name1, date, priority, discription);
 
 
-  const result = TaskModel1.create({ name1,task,secondtask, date, priority, discription })
+  const result = TaskModel1.create({ name1, task, secondtask, date, priority, discription })
 
   res.status(200).json({ message: "task add" })
 })
 
 app.get("/api/data/item", async (req, res) => {
   try {
-    const itemData =await TaskModel1.find()
+    const itemData = await TaskModel1.find()
 
-    res.json( itemData )
+    res.json(itemData)
 
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -190,14 +211,18 @@ app.get("/api/data/item", async (req, res) => {
 
 
 
+
+
+
+
 app.post("/login", async (req, res) => {
   const { workEmail, password } = req.body
   const user1 = await StudentsModel.findOne({ workEmail });
 
 
   const token = jwt.sign(
-    { userId: user1._id, name: user1.name, workEmail: user1.workEmail },
-    process.env.JWT_SECRPT_KEY,
+    { userId: user1._id, name: user1.name, lastname: user1.lastname, workEmail: user1.workEmail },
+    process.env.REFRESH_SECRPT_KEY,
     { expiresIn: "1h" }
   )
 
@@ -205,6 +230,37 @@ app.post("/login", async (req, res) => {
 
 
 })
+
+
+
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Authorization header missing' });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.REFRESH_SECRPT_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid token' });
+  }
+};
+
+
+app.get("/profile", authenticateJWT, async (req, res) => {
+  console.log(req.user);
+  res.json({ message: "Profile access granted", user: req.user });
+});
+
+
+
+
+
+
 
 
 

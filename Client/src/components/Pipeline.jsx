@@ -1,6 +1,7 @@
 import { CircleX, Clock2, Plus, Search, SquareChartGantt, TrendingDown } from "lucide-react";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 function Pipeline() {
 
@@ -10,7 +11,7 @@ function Pipeline() {
   const [stage, setStage] = useState("")
   // const [assigned, setAssigned] = useState("")
   const [company, setCompany] = useState("")
-  // const [closeData, setCloseData] = useState("")
+  const [isModel, setIsModel] = useState(false)
   // const [lead, setLead] = useState("")
   // const [description, setDescription] = useState("")
 
@@ -57,6 +58,14 @@ function Pipeline() {
     const result = await res.json()
     console.log("data add", result);
 
+
+    if (!res.ok) {
+      toast.error(result || "faild")
+      return;
+    }
+
+    toast.success("Submit Successfull")
+
   }
 
 
@@ -69,9 +78,20 @@ function Pipeline() {
   }
 
 
+  const openModel = ()=>{
+    setIsModel(true)
+  }
+
+  const closeModel = ()=>{
+    setIsModel(false)
+  }
+
+  
 
 
- 
+
+
+
 
 
 
@@ -127,9 +147,9 @@ function Pipeline() {
             />
           </div>
 
-          <div className="flex flex items-center justify-center rounded-lg h-11 px-4 bg-[#283039] text-white gap-2 hover:bg-[#323b46] transition-colors border border-transparent hover:border-slate-600 p-5">
+          <div onClick={openModel} className="flex flex items-center justify-center rounded-lg h-11 px-4 bg-[#283039] text-white gap-2 hover:bg-[#323b46] transition-colors border border-transparent hover:border-slate-600 p-5">
             <SquareChartGantt />
-            <p className="font-bold">Filters</p>
+            <button  className="font-bold">Filters</button>
           </div>
           <button className="flex bg-blue-500 p-4 font-bold text-white text-lg items-center  rounded-lg">
             <Plus className="" />
@@ -220,6 +240,51 @@ function Pipeline() {
                   <option value="Qualified">Qualified</option>
                   <option value="Unresponsive">Unresponsive</option>
                 </select> */}
+                <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      )}
+
+
+
+      {isModel && (
+        <form  className="   mt-[-700px]    z-40 justify-center items-center flex relative">
+          <div className="  w-150 h-130 ml-150   rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all   ">
+
+            <div className="ml-10 mt-10">
+
+              <div className="flex gap-80  items-center  space-y-6">
+                <p className="text-white font-bold text-2xl items-center ">Add Opportunity</p>
+                <CircleX onClick={closeModel} className="text-[#9cabba] hover:text-white transition-colors mb-4" />
+              </div>
+              <div className="space-y-7">
+                <label className="block text-white font-medium mb-2">Opportunity Name</label>
+                <input type="text" placeholder="Enter opportunity name" className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={name} onChange={(e) => setName(e.target.value)} />
+                <div className="flex gap-10">
+                  <div>
+                    <label className="block text-white font-medium mb-2">Deal Value</label>
+                    <input type="text" placeholder="Enter deal value" className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={value} onChange={(e) => setValue(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-white font-medium mb-2">Stage</label>
+                    <select className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={stage} onChange={(e) => setStage(e.target.value)}>
+                      <option value="Initial Status">Select Stage</option>
+                      <option value="New">New</option>
+                      <option value="Inbound">Inbound</option>
+                      <option value="Upsel">Upsel</option>
+                      <option value="Hot">Hot</option>
+                    </select>
+
+                  </div>
+                </div>
+                <label className="block text-white font-medium mb-2">Company Name</label>
+                <input type="text" placeholder=" Enter Company name " className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={company} onChange={(e) => setCompany(e.target.value)} />
+
+
+
+               
                 <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { BadgePlus, Calendar, CalendarDays, CircleCheck, CircleCheckBig, CircleX
 import { useEffect, useState } from "react";
 import image from "../assets/profile.jpg"
 import image1 from "../assets/person.jpg"
+import { toast } from "react-toastify";
 
 function Task() {
   const [name1, setName] = useState("")
@@ -45,8 +46,11 @@ function Task() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Failed", errorData);
+        toast.error(errorData || "faild")
         return;
       }
+
+      toast.success("Submit successfull")
 
 
     } catch (error) {
