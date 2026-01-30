@@ -6,16 +6,29 @@ import Register from './components/Register';
 import { Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Task from './components/Task';
+
 import Contact from './components/Contact';
 import Pipeline from './components/Pipeline';
-import Revenue from './components/Revenue';
+
 import { ToastContainer } from 'react-toastify';
 import Setting from './components/Setting';
-// import Profile from './components/Profile';
+
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+
+import Reset from './components/ResetPass';
+import Home from './components/Home';
+import { useAuth } from './components/Context/AuthContext';
+
+
+
+
+
 
 function App() {
+
+  const { user } = useAuth()
+
 
 
 
@@ -26,28 +39,21 @@ function App() {
       <ToastContainer />
 
       <Routes>
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Register" element={<Register />} />
+        <Route path="/Reset" element={<Reset />} />
 
-        <Route path="/Login" element={<Login />}></Route>
-
-        <Route path="/Register" element={<Register />}></Route>
         <Route element={<Layout />}>
-          <Route path="/Dashboard" element={<Dashboard />}></Route>
-          <Route path="/Task" element={<Task />}>
-
+          <Route element={<ProtectedRoute />}>
+            <Route path="/Home" element={<Home />} />
+            <Route path="/Dashboard" element={<Dashboard />} />
+            <Route path="/Contact" element={<Contact />} />
+            <Route path="/Pipeline" element={<Pipeline />} />
+            <Route path="/Setting" element={<Setting />} />
           </Route>
-          <Route path="/Contact" element={<Contact />}></Route>
-          <Route path="/Pipeline" element={<Pipeline />}></Route>
-          <Route path="/Revenue" element={<Revenue />}></Route>
-          <Route path="/Setting" element={<Setting />}></Route>
         </Route>
-
-        {/* <Route path="/Profile" element={<Profile />}></Route> */}
-
-
-
-
-
       </Routes>
+
 
 
 

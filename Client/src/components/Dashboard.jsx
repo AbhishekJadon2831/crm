@@ -1,422 +1,130 @@
-
 import { useEffect, useState } from "react";
-import image from "../assets/simple.jpg"
-import { BrickWall, CalendarDays, CircleCheck, CircleCheckBig, CircleUserRound, DollarSign, LayoutDashboard, Plus, Settings, ShieldQuestionMark, TrendingUp, Clock, Video, CircleX, SquarePen } from "lucide-react"
-import { toast } from 'react-toastify';
+import {
+  CircleUserRound,
+  TrendingUp,
+  DollarSign,
+  ArrowUpRight
+} from "lucide-react";
+
 function Dashboard() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [name1, setName] = useState("")
-  const [date, setdate] = useState("")
-  const [priority, setPriority] = useState("")
-  const [company, setCompany] = useState("")
-  const [item, setItem] = useState([])
-  const [editform, setEditform] = useState(false)
-  const [editingId, setEditingId] = useState(null);
+    
+  const [items, setItems] = useState([]);
 
+ 
 
-
-
-  const handle1 = async (e) => {
-    e.preventDefault();
-
-
-
-
-
+  const fetchResult = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/edit/${editingId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name1, date, priority, company }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        console.error("Failed", data);
-        toast.error(data.message || "faild");
-        return;
-      }
-
-      toast.success("Change successfull")
-
-
-
-
-      const updatedTask = await response.json();
-      setItem(item.map((i) => (i._id === editingId ? updatedTask : i)));
-      setEditform(false);
-      setEditingId(null);
+      const res = await fetch("http://localhost:3000/api/leads/pipeline");
+      const data = await res.json();
+      setItems(data);
+      console.log(data);
+      
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.log("Error fetching pipeline:", error);
     }
   };
 
-
-  const open = (item) => {
-
-    setEditform(true);
-    setEditingId(item._id);
-    setName(item.name1 || "");
-    setdate(item.date || "");
-    setPriority(item.priority || "");
-    setCompany(item.company || "");
-  };
-
-
-
-
-
-  const close = () => {
-    setEditform(false)
-  }
-
-
-
-  const fetchData = async () => {
-    try {
-      const res1 = await fetch('http://localhost:3000/item');
-
-      const result = await res1.json();
-      setItem(result);
-    } catch (error) {
-      setError(error.message);
-    }
-
-
-  };
+  const close = items.filter((i) => i.stage === "CLOSED").length;
 
   useEffect(() => {
-
-
-
-    fetchData();
+     
+    fetchResult();
   }, []);
 
-
-
-  const openForm = () => {
-    setIsFormOpen(true);
-  };
-
-  const closeForm = () => {
-    setIsFormOpen(false);
-  };
-
-
-
-  const handle = async (e) => {
-    e.preventDefault();
-    const res = await fetch("http://localhost:3000/task", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      }, body: JSON.stringify({ name1, date, priority, company }),
-
-
-    });
-
-    if (res.ok) {
-      fetchData()
-      const data = await res.json()
-      console.log("chack", data);
-    }
-
-
-    if (!res.ok) {
-      toast.error(data.message || "faild");
-      return;
-    }
-
-    toast.success("Submit successfull")
-
-    // setIsFormOpen(false)
-
-
-
-
-  }
-
-
-
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High':
-        return 'text-red-400 text-base font-bold bg-red-400/10 px-2 py-0.5 rounded';
-      case 'Mediun':
-        return 'text-yellow-400 text-base font-bold bg-yellow-400/10 px-2 py-0.5 rounded';
-      case 'Low':
-        return 'text-blue-400 text-base font-bold bg-blue-400/10 px-2 py-0.5 rounded';
-      default:
-        return 'bg-gray-200';
-    }
-  };
-
-
-
-
-
-
-  // bg-[#202124]
   return (
 
-    <>
-
-      <div className="">
-
-        <div className="w-300 ml-95 bg-[#202124] ">
-          <div className="p-10 w-full ">
-            <div className="flex justify-between  ">
-              <div className="space-y-4">
-                <p className="text-white font-bold text-4xl">Main Dashboard</p>
-                <p className="text-lg text-slate-600 dark:text-slate-400">Welcome back, Alex. Here's your day at a glance.</p>
-              </div>
-              <div className="flex items-center gap-2 bg-blue-500 px-4 py-2 h-15   rounded-lg">
-                <Plus className="text-white w-5" />
-                <button className="text-white font-bold text-lg" onClick={openForm}>Add Quick Task</button>
-              </div>
+    <div className="min-h-screen bg-[#0f1113] text-slate-100 font-sans selection:bg-blue-500/30 ml-90">
+      <div className="p-8 lg:p-12 max-w-[1400px] mx-auto">
+        
+         
+        <header className="mb-14 flex flex-col md:flex-row justify-between items-end md:items-center border-b border-white/5 pb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+              <p className="text-blue-500 font-bold text-xs uppercase tracking-[0.3em]">System Live</p>
             </div>
-
-
-            <div className="flex justify-between mt-8 bg-[#202124] ">
-              <div className=" bg-[#1a1d21] rounded-xl border border-[#283039] p-6   hover:border-[#3a4552] transition-colors w-92 ">
-
-
-                <div className="flex justify-between">
-                  <p className="text-slate-600 dark:text-slate-400 text-lg">
-                    Active Deals Value
-                  </p >
-                  <DollarSign className="bg-green-400/10 text-green-400 rounded-full p-1.5 flex items-center justify-center h-10 w-7" />
-
-                </div>
-
-                <div className="flex gap-4 mt-7">
-                  <div className="space-y-6 ">
-                    <p className="text-4xl font-bold text-white">
-                      $142,500
-                    </p>
-                    <p className="text-slate-600 dark:text-slate-400 ">vs. last month</p>
-                  </div>
-                  <div className="text-green-400 text-sm font-medium flex mt-3  ">
-                    <TrendingUp className="" />
-                    <p className="text-lg ">12%</p>
-                  </div>
-                </div>
-
-
-
-
-
-              </div>
-              <div className=" bg-[#1a1d21] rounded-xl border border-[#283039] p-6   hover:border-[#3a4552] transition-colors w-92 ">
-
-
-                <div className="flex justify-between">
-                  <p className="text-slate-600 dark:text-slate-400 text-lg">
-                    Meetings This Week
-                  </p >
-                  <CalendarDays className="bg-blue-400/10 text-blue-400 rounded-full p-1.5 flex items-center justify-center h-10 w-7" />
-
-                </div>
-
-                <div className="flex  mt-7">
-                  <div className="space-y-6 ">
-                    <p className="text-4xl font-bold text-white">
-                      18
-                    </p>
-                    <p className="text-slate-600 dark:text-slate-400 ">vs. last month</p>
-                  </div>
-                  <div className=" text-sm font-medium flex mt-4  ">
-
-                    <p className="text-lg text-slate-600 dark:text-slate-400 ">scheduled</p>
-                  </div>
-                </div>
-
-
-
-
-
-              </div>
-              <div className=" bg-[#1a1d21] rounded-xl border border-[#283039] p-6   hover:border-[#3a4552] transition-colors w-92">
-
-
-                <div className="flex justify-between">
-                  <p className="text-slate-600 dark:text-slate-400 text-lg">
-                    Active Deals Value
-                  </p >
-                  <BrickWall className="bg-purple-400/10 text-purple-400 rounded-full p-1.5 flex items-center justify-center h-10 w-7" />
-
-
-                </div>
-
-                <div className="flex  mt-7">
-                  <div className="space-y-6 ">
-                    <p className="text-4xl font-bold text-white">
-                      78%
-                    </p>
-                    <p className="text-slate-600 dark:text-slate-400 ">vs. last month</p>
-                  </div>
-                  <div className="text-green-400 text-sm font-medium flex mt-3  ">
-
-                    <p className="text-lg text-slate-600 dark:text-slate-400">achieved</p>
-                  </div>
-                </div>
-
-
-
-
-
-
-
-              </div>
-
-            </div>
-
-            <div className="flex justify-between mt-10">
-              <p className="text-2xl text-white font-bold">Action Center</p>
-              <p className="text-[#9cabba] hover:text-white text-lg font-medium">View Calendar</p>
-            </div>
-            <div className="flex justify-between p-5 border-b border-[#283039] flex items-center justify-between bg-[#21272e] mt-10">
-              <div className="flex items-center gap-3">
-                <CircleCheckBig className="text-blue-500 " />
-                <p className="text-white text-lg font-bold">Tasks Due Today</p>
-              </div>
-              <p className="bg-[#283039] text-white text-base px-2 py-1 rounded-md font-medium ">5 Pending</p>
-            </div>
-
-
-
-            <div>
-              {item.map((item) => (
-
-                <div
-                  key={item._id}
-                  className="flex justify-between p-5 border-b border-[#283039] items-center bg-[#21272e] mt-5"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <CircleCheckBig className="text-blue-500" />
-                      <p className="text-white text-lg font-bold">{item.name1}</p>
-                    </div>
-                    <div className="flex gap-3 items-center ml-8">
-                      <img
-                        src={item.image}
-                        alt="User"
-                        className="w-5 h-5 rounded-full"
-                      />
-
-                      <p className="text-slate-600 dark:text-slate-400 font-serif">
-                        {item.company}
-                      </p>
-                      <Clock className="w-5 text-slate-600 dark:text-slate-400" />
-                      <p className="text-slate-600 dark:text-slate-400 font-serif">
-                        Due {item.date}
-                      </p>
-                    </div>
-
-
-
-                  </div>
-                  <p className={` ml-130   text-base px-2 py-1 rounded-md font-medium ${getPriorityColor(item.priority)}`}>
-                    {item.priority}
-                  </p>
-                  <div>
-                    <SquarePen onClick={() => open(item)} className="text-slate-600 dark:text-slate-400" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-
-
-
-
+            <h1 className="text-5xl font-extrabold tracking-tighter bg-gradient-to-r from-white via-slate-300 to-slate-500 bg-clip-text text-transparent">
+              Executive Dashboard
+            </h1>
+            <p className="text-slate-500 mt-3 text-lg font-medium">
+              Intelligence overview for <span className="text-white">Alex</span>
+            </p>
           </div>
+          <div className="hidden md:block text-right">
+            <p className="text-xs text-slate-500 uppercase tracking-widest mb-1 font-bold">Current Status</p>
+            <p className="text-sm font-mono text-slate-300">Operational • 100% Sync</p>
+          </div>
+        </header>
+
+        {/* ===== STATS GRID ===== */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Total Leads Card */}
+          <div className="group relative bg-[#1a1d21]/50 border border-white/5 rounded-3xl p-8 transition-all duration-500 hover:border-blue-500/50 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.2)] overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+              <ArrowUpRight className="text-blue-500 w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <CircleUserRound className="text-blue-500 w-8 h-8" />
+              </div>
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">Total Lead</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className="text-5xl font-bold tracking-tight">{items.length}</p>
+                <span className="text-blue-500 text-xs font-bold">+12%</span>
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -left-2 w-24 h-24 bg-blue-500/5 blur-3xl rounded-full"></div>
+          </div>
+
+          {/* Total Pipeline Card */}
+          <div className="group relative bg-[#1a1d21]/50 border border-white/5 rounded-3xl p-8 transition-all duration-500 hover:border-yellow-500/50 hover:shadow-[0_0_40px_-10px_rgba(234,179,8,0.2)] overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+              <ArrowUpRight className="text-yellow-500 w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <TrendingUp className="text-yellow-500 w-8 h-8" />
+              </div>
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">Pipeline</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className="text-5xl font-bold tracking-tight">{items.length}</p>
+                <span className="text-yellow-500 text-xs font-bold">Active</span>
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -left-2 w-24 h-24 bg-yellow-500/5 blur-3xl rounded-full"></div>
+          </div>
+
+          
+          <div className="group relative bg-[#1a1d21]/50 border border-white/5 rounded-3xl p-8 transition-all duration-500 hover:border-green-500/50 hover:shadow-[0_0_40px_-10px_rgba(34,197,94,0.2)] overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+              <ArrowUpRight className="text-green-500 w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <DollarSign className="text-green-500 w-8 h-8" />
+              </div>
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">Revenue Stage</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className="text-5xl font-bold tracking-tight">{close}</p>
+                <span className="text-green-500 text-xs font-bold">Closed</span>
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -left-2 w-24 h-24 bg-green-500/5 blur-3xl rounded-full"></div>
+          </div>
+
         </div>
+
+         
+        <div className="mt-12 text-center">
+          <p className="text-slate-600 text-[10px] uppercase tracking-[0.4em] font-black">
+            Data refreshes automatically every session
+          </p>
+        </div>
+
       </div>
-
-      {isFormOpen && (
-        <form onSubmit={handle} className="fixed top-0 left-0 w-full h-full   backdrop-blur-sm z-40 justify-center items-center flex ">
-          <div className="  w-150 h-130   rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all   ">
-
-            <div className="ml-10 mt-10">
-
-              <div className="flex gap-80  items-center  space-y-6">
-                <p className="text-white font-bold text-2xl items-center ">Add Quick Task</p>
-                <CircleX onClick={closeForm} className="text-[#9cabba] hover:text-white transition-colors mb-4" />
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">TASK DESRCIPTION</label>
-                <input type="text" placeholder="Follow up on proposal #402" className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={name1} onChange={(e) => setName(e.target.value)} />
-                <div className="flex gap-10">
-                  <div>
-                    <label className="block text-white font-medium mb-2">DUE DATE</label>
-                    <input type="date" className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={date} onChange={(e) => setdate(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-white font-medium mb-2">PRIORITY</label>
-                    <select className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={priority} onChange={(e) => setPriority(e.target.value)}>
-                      <option value="select">Select Priority</option>
-                      <option value="High">High</option>
-                      <option value="Mediun">Mediun</option>
-                      <option value="Low">Low</option>
-                    </select>
-                  </div>
-                </div>
-                <label className="block text-white font-medium mb-2">COMPANY NAME</label>
-                <input type="text" placeholder=" company name " className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={company} onChange={(e) => setCompany(e.target.value)} />
-                <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
-              </div>
-            </div>
-          </div>
-        </form>
-      )}
-
-
-
-
-
-
-      {editform && (
-        <form onSubmit={handle1} className="fixed top-0 left-0 w-full h-full   backdrop-blur-sm z-40 justify-center items-center flex ">
-          <div className="  w-150 h-130   rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all   ">
-
-            <div className="ml-10 mt-10">
-
-              <div className="flex gap-80  items-center  space-y-6">
-                <p className="text-white font-bold text-2xl items-center ">Add Quick Task</p>
-                <CircleX onClick={close} className="text-[#9cabba] hover:text-white transition-colors mb-4" />
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">TASK DESRCIPTION</label>
-                <input type="text" placeholder="Follow up on proposal #402" className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={name1} onChange={(e) => setName(e.target.value)} />
-                <div className="flex gap-10">
-                  <div>
-                    <label className="block text-white font-medium mb-2">DUE DATE</label>
-                    <input type="date" className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={date} onChange={(e) => setdate(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-white font-medium mb-2">PRIORITY</label>
-                    <select className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={priority} onChange={(e) => setPriority(e.target.value)}>
-                      <option value="select">Select Priority</option>
-                      <option value="High">High</option>
-                      <option value="Mediun">Mediun</option>
-                      <option value="Low">Low</option>
-                    </select>
-                  </div>
-                </div>
-                <label className="block text-white font-medium mb-2">COMPANY NAME</label>
-                <input type="text" placeholder=" company name " className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={company} onChange={(e) => setCompany(e.target.value)} />
-                <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
-              </div>
-            </div>
-          </div>
-        </form>
-      )}
-    </>
-  )
+    </div>
+  );
 }
 
-export default Dashboard
+export default Dashboard;

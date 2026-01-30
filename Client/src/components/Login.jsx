@@ -1,139 +1,119 @@
 import { useState } from "react";
-import image from "../assets/groth.jpg"
-import image1 from "../assets/unnamed (1).png"
-import image2 from "../assets/google.png"
-import { FiMail, FiEye } from "react-icons/fi";
-import { toast } from 'react-toastify';
+import image from "../assets/groth.jpg";
 
+import { FiMail, FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from 'react-toastify';
+import { useAuth } from "./Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+    const [workEmail, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
-    const [workEmail, setEmail] = useState("")
-
-    const [password, setPassword] = useState("")
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handle = async (e) => {
         e.preventDefault();
-        const res2 = await fetch("http://localhost:3000/login", {
+        const res2 = await fetch("http://localhost:3000/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ workEmail, password }),
         });
         const data2 = await res2.json();
-        console.log("Login response:", data2);
-
-
-
-        localStorage.setItem("token", data2.token);
 
         if (!res2.ok) {
-            toast.error(data2.message || "Login Faild")
+            toast.error(data2.message || "Invalid user");
+            return;
         }
-        toast.success("Login Successfull")
 
-    }
+        localStorage.setItem("token", data2.token);
+        toast.success("Login successful");
+        login(data2.token);
+    };
 
-    return <>
-
-
-
-
-        <div className=" flex">
-            <div className="bg-gray-900 w-200 ">
-                <div className="ml-40 mt-20">
-
-                    <div className="space-y-10">
-                        <p className="text-white font-bold text-2xl  ">SalesForse One</p>
-                        <div className="space-y-5">
-                            <p className="text-white text-2xl font-bold">Welcome Back</p>
-                            <p className="mt-2 text-lg   text-slate-600 dark:text-slate-400">Enter your credentials to access your dashboard.</p>
-                        </div>
+    return (
+        <div className="flex min-h-screen bg-gray-900 font-sans">
+            {/* Left Side: Login Form */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-24 lg:px-32 py-12">
+                <div className="max-w-md w-full mx-auto">
+                    <div className="mb-10">
+                        <h2 className="text-blue-500 font-black text-2xl tracking-tighter uppercase mb-8">SalesForce One</h2>
+                        <h1 className="text-white text-4xl font-extrabold mb-3">Welcome Back</h1>
+                        <p className="text-gray-400 text-lg">Enter your credentials to access your dashboard.</p>
                     </div>
 
-                    <form className=" space-y-10 mt-15" onSubmit={handle}>
+                    <form className="space-y-6" onSubmit={handle}>
+                        <div className="space-y-5">
+                            <div className="relative">
+                                <label className="block text-gray-300 font-semibold mb-2 text-sm">Email Address</label>
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        placeholder="name@company.com"
+                                        value={workEmail}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full p-4 pr-12 rounded-xl bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-white transition-all"
+                                    />
+                                    <FiMail className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-2xl" />
+                                </div>
+                            </div>
 
-                        <div className="relative">
-                            <label className="block text-white font-medium mb-2"> Email address</label>
-                            <input
-                                type="email"
-                                placeholder="name@company.com"
-                                value={workEmail}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-110 p-4  rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                            />
-                            <FiMail className="absolute left-98 top-12 text-gray-400 text-[30px]" />
+                            <div className="relative">
+                                <label className="block text-gray-300 font-semibold mb-2 text-sm">Password</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full p-4 pr-12 rounded-xl bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-white transition-all"
+                                    />
+                                    <div 
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-white"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <FiEyeOff size={24} /> : <FiEye size={24} />}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="relative">
-                            <label className="block text-white font-medium mb-2">Password</label>
-                            <input
-                                type="password"
-                                placeholder=" enter your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-110 p-4  rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                            />
-                            <FiEye className="absolute left-98 top-12 text-gray-400 text-[30px]" />
-
-                        </div>
-                        <div className="flex gap-47">
-                            <span className="text-white text-lg">
-                                Remember me</span>
-
-                            <span className="font-semibold text-primary hover:text-blue-400 text-blue-500 text-lg">
-                                Forgot Password?
-                            </span>
+                        <div className="flex items-center justify-between">
+                           
+                           
                         </div>
 
-                        <button type="submit" className="bg-blue-500 w-110 p-4 rounded-xl font-bold text-white text-[20px]">Sign in </button>
-
-
-                        <div className="flex bg-blue-500 w-110 p-5 gap-5 rounded-xl bg-gray-800 border border-gray-600 text-white font-bold justify-center items-center">
-                            <img src={image2} alt="image" className="w-5" />
-                            <button className=" "> Google </button>
-
-
-
+                        <div className="space-y-4 pt-2">
+                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98]">
+                                Sign In
+                            </button>
+                            
+                           
                         </div>
 
-                        <div className="flex gap-2 ml-10">
-                            <p className="text-white text-lg">Don't have an account? </p>
-                            <p className="text-blue-500 text-lg font-bold">Sign up for a trial</p>
+                        <div className="flex justify-center gap-2 pt-4">
+                            <p className="text-gray-400">Don't have an account?</p>
+                            <p onClick={() => navigate("/Register")} className="text-blue-500 font-bold cursor-pointer hover:underline underline-offset-4">
+                                Sign up for a trial
+                            </p>
                         </div>
                     </form>
                 </div>
             </div>
-            <div className="relative">
-                <img src={image} alt="image" className="w-200 h-230" />
-                <div className="absolute space-y-20  top-130 left-1/2 transform -translate-x-1/2 -translate-y-1/2  space-y-9    text-center  w-full  ">
-
-
-
-                    <div className="">
-                        <p className="text-white text-3xl font-bold">"SalesForce One transformed how our<br /> team tracks revenue. The interface is<br /> simply the fastest on the market.".</p>
-                    </div>
-                    <div className="    w-125 space-y-4 ml-37 ">
-
-
-                        <div className="ml-7 flex gap-2 ">
-                            <img src={image1} alt="" className="w-10 rounded-3xl" />
-                            <div className="">
-                                <p className="text-white font-bold text-1xl">Marcus Chen</p>
-                                <p className="text-slate-300 font-bold">VP of Sales, TechCorp</p>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
+ 
+            <div className="hidden lg:block relative w-1/2">
+                <img 
+                    src={image} 
+                    alt="Background" 
+                    className="absolute inset-0 w-full h-full object-cover" 
+                />
+               
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-transparent to-transparent opacity-30"></div>
             </div>
-
-
         </div>
-
-
-    </>
-
+    );
 }
 
 export default Login;

@@ -1,299 +1,241 @@
-import { CircleX, Clock2, Plus, Search, SquareChartGantt, TrendingDown } from "lucide-react";
-import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import React, { useState, useEffect } from "react";
+import { Clock, Mail, Phone, Building2, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  useDraggable,
+  useDroppable,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+} from "@dnd-kit/core";
+import { useAuth } from "./Context/AuthContext";
 
-function Pipeline() {
+ 
 
-  const [isForm, setIsform] = useState(false)
-  const [name, setName] = useState("")
-  const [value, setValue] = useState("")
-  const [stage, setStage] = useState("")
-  // const [assigned, setAssigned] = useState("")
-  const [company, setCompany] = useState("")
-  const [isModel, setIsModel] = useState(false)
-  // const [lead, setLead] = useState("")
-  // const [description, setDescription] = useState("")
+function DraggableCard({ item, isOverlay }) {
+  const isClosed = item.status === "CLOSED";
 
-  const [item, setItem] = useState([])
-
-
-
-
-  const fetchData = async () => {
-    try {
-
-      const data = await fetch("http://localhost:3000/api/pipeline");
-      const data1 = await data.json()
-      setItem(data1, "get data")
-
-    } catch (error) {
-      console.log(error);
-
-    }
-  }
-
-
-  useEffect(() => {
-
-    fetchData()
-
-
-  }, [])
-
-
-
-
-  const handle = async (e) => {
-    e.preventDefault();
-
-    const res = await fetch("http://localhost:3000/pipeline", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({ name, value, stage, company })
-    })
-
-    const result = await res.json()
-    console.log("data add", result);
-
-
-    if (!res.ok) {
-      toast.error(result || "faild")
-      return;
-    }
-
-    toast.success("Submit Successfull")
-
-  }
-
-
-  const open = () => {
-    setIsform(true)
-  }
-
-  const closeForm = () => {
-    setIsform(false)
-  }
-
-
-  const openModel = ()=>{
-    setIsModel(true)
-  }
-
-  const closeModel = ()=>{
-    setIsModel(false)
-  }
-
-  
-
-
-
-
-
-
-
-
-
-
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: "box",
-  });
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: item._id,
+      disabled: isClosed,
+    });
 
   const style = {
     transform: transform
-  }
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
+    opacity: isDragging && !isOverlay ? 0.3 : 1,
+    cursor: isClosed ? "not-allowed" : "grab",
+  };
 
+  
 
   return (
-    <>
-      <div className="p-10 ml-95  w-300   bg-[#202124] ">
-        <div className="flex justify-between  ">
-          <div className="space-y-4">
-            <p className="text-white font-bold text-4xl">Sales Pipeline</p>
-            <p className="text-lg text-slate-600 dark:text-slate-400">Track your opportunities and manage deal flow.</p>
-          </div>
-          <div className="flex items-center gap-10  ">
-            <div >
-              <p className="text-slate-600 dark:text-slate-400 text-lg font-bold">Total Value</p>
-              <h1 className="text-white text-2xl ml-6 font-bold">$1.4M</h1>
-            </div>
-
-            <div className="flex flex-col items-end border-l border-[#283039] pl-6">
-
-              <p className="text-slate-600 dark:text-slate-400 text-lg font-bold">Open Deals</p>
-              <div className=" text-blue-500 ml-14  ">
-
-                <h2 className="text-2xl ">124</h2>
-              </div>
-            </div>
-
-
-
-
-          </div>
-        </div>
-        <div className="flex gap-10 items-center mt-13 justify-between">
-          <div className="flex items-center bg-[#283039] rounded-xl border border-gray-600 p-1
-               focus:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-            <button className="text-[#9cabba] pl-3 pr-0">
-              <Search />
-            </button>
-            <input
-              type="text"
-              placeholder="Search by name, email, or company"
-              className="w-170 p-2   focus:outline-none text-white"
-            />
-          </div>
-
-          <div onClick={openModel} className="flex flex items-center justify-center rounded-lg h-11 px-4 bg-[#283039] text-white gap-2 hover:bg-[#323b46] transition-colors border border-transparent hover:border-slate-600 p-5">
-            <SquareChartGantt />
-            <button  className="font-bold">Filters</button>
-          </div>
-          <button className="flex bg-blue-500 p-4 font-bold text-white text-lg items-center  rounded-lg">
-            <Plus className="" />
-            <p onClick={open}>Add Opportunity</p>
-          </button>
-        </div>
-
-
-        <div className="overflow-x-auto pb-4 mt-10">
-          <div className=" grid grid-cols-3 gap-6">
-            {item.map((item) => (
-              <div key={item._id}>
-                <div className="bg-[#1a1d21] rounded-xl border border-[#283039] p-6 hover:border-[#3a4552] transition-colors h-50">
-
-                  <div className="flex justify-between">
-                    <p className="bg-blue-900/30 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                      {item.stage}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 space-y-1">
-                    <p className="text-lg font-bold text-white">{item.company}</p>
-                    <p className="text-slate-400">{item.name}</p>
-                  </div>
-
-                  <div className="flex mt-7 justify-between">
-                    <h3 className="font-bold text-white text-lg">${item.value}</h3>
-                    <div className="flex gap-3">
-                      <Clock2 className="text-[#9cabba]" />
-                      <p className="text-[#9cabba]">Email follow-up</p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-
-
-
-
-
-
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...(!isClosed ? listeners : {})}
+      {...attributes}
+      className={`group relative bg-[#1a1d21] rounded-xl border p-5 mb-4 transition-all duration-200
+        ${isOverlay ? "z-50 shadow-2xl border-blue-500 scale-105" : "shadow-md"}
+        ${isClosed
+          ? "border-green-900/50 opacity-75"
+          : "border-[#283039] hover:border-[#3a4552] hover:shadow-lg active:scale-[0.98]"}
+      `}
+    >
+      <div className="flex justify-between items-start mb-3">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider
+          ${isClosed ? "bg-green-900/30 text-green-400" : "bg-blue-900/30 text-blue-300"}`}>
+          {item.status}
+        </span>
+        {!isClosed && <GripVertical size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors" />}
       </div>
 
-      {isForm && (
-        <form onSubmit={handle} className="fixed top-0 left-0 w-full h-full   backdrop-blur-sm z-40 justify-center items-center flex ">
-          <div className="  w-150 h-130   rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all   ">
+      <h4 className="text-lg font-semibold text-white leading-tight">{item.fullname}</h4>
 
-            <div className="ml-10 mt-10">
-
-              <div className="flex gap-80  items-center  space-y-6">
-                <p className="text-white font-bold text-2xl items-center ">Add Opportunity</p>
-                <CircleX onClick={closeForm} className="text-[#9cabba] hover:text-white transition-colors mb-4" />
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">Opportunity Name</label>
-                <input type="text" placeholder="Enter opportunity name" className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={name} onChange={(e) => setName(e.target.value)} />
-                <div className="flex gap-10">
-                  <div>
-                    <label className="block text-white font-medium mb-2">Deal Value</label>
-                    <input type="text" placeholder="Enter deal value" className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={value} onChange={(e) => setValue(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-white font-medium mb-2">Stage</label>
-                    <select className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={stage} onChange={(e) => setStage(e.target.value)}>
-                      <option value="Initial Status">Select Stage</option>
-                      <option value="New">New</option>
-                      <option value="Inbound">Inbound</option>
-                      <option value="Upsel">Upsel</option>
-                      <option value="Hot">Hot</option>
-                    </select>
-
-                  </div>
-                </div>
-                <label className="block text-white font-medium mb-2">Company Name</label>
-                <input type="text" placeholder=" Enter Company name " className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={company} onChange={(e) => setCompany(e.target.value)} />
-
-
-
-                {/* <label className="block text-white font-medium mb-2 uppercase">Initial Status</label>
-                <select className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={assigned} onChange={(e) => setAssigned(e.target.value)}>
-                  <option value="Initial Status">Select Initial Status</option>
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="Qualified">Qualified</option>
-                  <option value="Unresponsive">Unresponsive</option>
-                </select> */}
-                <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
-              </div>
-            </div>
+      <div className="mt-3 space-y-2">
+        <div className="flex items-center gap-2 text-slate-400 text-sm">
+          <Mail size={14} className="opacity-70" />
+          <span className="truncate">{item.email}</span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-400 text-sm">
+          <Phone size={14} className="opacity-70" />
+          <span>{item.number}</span>
+        </div>
+        {item.company && (
+          <div className="flex items-center gap-2 text-blue-400/80 text-sm pt-1">
+            <Building2 size={14} />
+            <span className="font-medium uppercase tracking-tight text-[11px]">{item.company}</span>
           </div>
-        </form>
-      )}
+        )}
+      </div>
+
+      <div className="flex mt-5 pt-4 border-t border-[#283039] gap-3 items-center justify-between">
+        <div className="flex items-center gap-2 text-[#9cabba]">
+          <Clock size={16} />
+          <p className="text-xs font-medium">Follow-up</p>
+        </div>
+        {isClosed && <span className="text-green-400 text-[10px] font-black uppercase italic">✓ Won</span>}
+      </div>
+    </div>
+  );
+}
 
 
 
-      {isModel && (
-        <form  className="   mt-[-700px]    z-40 justify-center items-center flex relative">
-          <div className="  w-150 h-130 ml-150   rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all   ">
+function DroppableColumn({ status, title, items, colorClass }) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
-            <div className="ml-10 mt-10">
+  return (
+    <div className="flex-1 min-w-[320px] flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-3">
+          <h3 className={`font-bold text-lg ${colorClass}`}>{title}</h3>
+          <span className="bg-[#283039] text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-mono">
+            {items.length}
+          </span>
+        </div>
+      </div>
 
-              <div className="flex gap-80  items-center  space-y-6">
-                <p className="text-white font-bold text-2xl items-center ">Add Opportunity</p>
-                <CircleX onClick={closeModel} className="text-[#9cabba] hover:text-white transition-colors mb-4" />
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">Opportunity Name</label>
-                <input type="text" placeholder="Enter opportunity name" className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={name} onChange={(e) => setName(e.target.value)} />
-                <div className="flex gap-10">
-                  <div>
-                    <label className="block text-white font-medium mb-2">Deal Value</label>
-                    <input type="text" placeholder="Enter deal value" className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={value} onChange={(e) => setValue(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-white font-medium mb-2">Stage</label>
-                    <select className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={stage} onChange={(e) => setStage(e.target.value)}>
-                      <option value="Initial Status">Select Stage</option>
-                      <option value="New">New</option>
-                      <option value="Inbound">Inbound</option>
-                      <option value="Upsel">Upsel</option>
-                      <option value="Hot">Hot</option>
-                    </select>
+      <div
+        ref={setNodeRef}
+        className={`flex-1 rounded-2xl transition-all duration-200 p-2 min-h-[500px]
+          ${isOver ? "bg-blue-500/5 ring-2 ring-blue-500/20 ring-dashed" : "bg-[#16191d]"}`}
+      >
+        {items.map((item) => (
+          <DraggableCard key={item._id} item={item} />
+        ))}
 
-                  </div>
-                </div>
-                <label className="block text-white font-medium mb-2">Company Name</label>
-                <input type="text" placeholder=" Enter Company name " className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white" value={company} onChange={(e) => setCompany(e.target.value)} />
-
-
-
-               
-                <button type="submit" className="w-130 p-3 rounded-xl bg-blue-500">Submit</button>
-              </div>
-            </div>
+        {items.length === 0 && (
+          <div className="h-32 border-2 border-dashed border-[#283039] rounded-xl flex items-center justify-center text-slate-600 text-sm italic">
+            No deals in {title.toLowerCase()}
           </div>
-        </form>
-      )}
+        )}
+      </div>
+    </div>
+  );
+}
 
-    </>
-  )
+
+
+function Pipeline() {
+  const [items, setItems] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const { user } = useAuth();
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/leads/pipeline");
+      const data = await res.json();
+
+
+      const setData = data.filter((task) => task.assignee === user?.name)
+      setItems(setData)
+
+       
+
+
+    } catch (e) { console.error("Fetch failed", e); }
+
+
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchData();
+
+    }
+  }, [user]);
+
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+
+    const draggedId = active.id;
+    const newStage = over.id;
+    const draggedItem = items.find((item) => item._id === draggedId);
+
+    if (!draggedItem || draggedItem.status === "CLOSED" || draggedItem.status === newStage) return;
+
+    // Optimistic UI update
+    setItems((prev) =>
+      prev.map((item) => (item._id === draggedId ? { ...item, status: newStage } : item))
+    );
+
+
+    await fetch(`http://localhost:3000/api/leads/pipeline/${draggedId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: newStage }),
+    });
+  };
+
+  const activeItem = items.find((i) => i._id === activeId);
+
+  return (
+    <div className="p-10 min-h-screen bg-[#0f1113] text-slate-200 ml-90">
+      <header className="mb-10 max-w-7xl mx-auto">
+        <h1 className="text-white font-black text-5xl tracking-tight mb-2">Sales Pipeline</h1>
+        <p className="text-lg text-slate-500 font-medium">Manage your revenue flow and deal stages.</p>
+      </header>
+
+      <div className="max-w-7xl mx-auto overflow-x-auto pb-10">
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div className="flex gap-8">
+            <DroppableColumn
+              status="NEW"
+              title="New"
+              items={items.filter(i => i.status === "NEW")}
+              colorClass="text-white"
+            />
+            <DroppableColumn
+              status="CONTACTED"
+              title="Contacted"
+              items={items.filter(i => i.status === "CONTACTED")}
+              colorClass="text-blue-400"
+            />
+            <DroppableColumn
+              status="INTERESTED"
+              title="Interested"
+              items={items.filter(i => i.status === "INTERESTED")}
+              colorClass="text-emerald-400"
+            />
+
+
+            <DroppableColumn
+              status="CLOSED"
+              title="Closed"
+              items={items.filter(i => i.status === "CLOSED")}
+              colorClass="text-red-400"
+            />
+
+
+            <DroppableColumn
+              status="LOST"
+              title="Lost"
+              items={items.filter(i => i.status === "LOST")}
+              colorClass="text-blue-400"
+            />
+
+
+          </div>
+
+          <DragOverlay dropAnimation={{
+            sideEffects: defaultDropAnimationSideEffects({
+              styles: { active: { opacity: '0.5' } },
+            }),
+          }}>
+            {activeId ? <DraggableCard item={activeItem} isOverlay /> : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    </div>
+  );
 }
 
 export default Pipeline;

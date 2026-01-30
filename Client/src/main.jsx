@@ -7,7 +7,6 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './components/Context/AuthContext.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <BrowserRouter>
     <AuthProvider>
 
@@ -15,5 +14,4 @@ createRoot(document.getElementById('root')).render(
     {/* <Navbar/> */}
     </AuthProvider>
     </BrowserRouter>
-  </StrictMode>,
 )

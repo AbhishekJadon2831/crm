@@ -1,498 +1,486 @@
-import { CircleX, Link2, Mail, Phone, Plus, Search, SquareChartGantt } from "lucide-react";
+import { CircleX, Mail, Phone, Plus, Search, SquareChartGantt, MessageSquare, User, Clock, ChevronRight, X, Edit3 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "./Context/AuthContext";
 
 function Contact() {
+  const { user } = useAuth();
+  const [items1, setItems1] = useState([]);
+  const [assigneeItem, setAssigneeItem] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("");
+
+
+
+
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [number, setNumber] = useState("");
-  const [linkdin, setLinkdin] = useState("");
-  const [status, setStatus] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [assignee, setAssignee] = useState("");
   const [openForm, setIsFormOpen] = useState(false);
-  const [ismodel, setIsmodel] = useState(false);
-  const [items1, setItems1] = useState([]);
-  const [assignedSalesperson, setAssignedSalesperson] = useState("");
-  const [lastActivity, setLastActivity] = useState("Any Time");
-  const [companyName, setCompanyName] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState({
-    New: false,
-    Contacted: false,
-    Qualified: false,
-    Unresponsive: false,
-  });
-
-  const fetchData = async () => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (filterStatus !== "all") {
-        queryParams.append("status", filterStatus);
-      }
-      if (lastActivity !== "Any Time") {
-        queryParams.append("lastActivity", lastActivity);
-      }
-      if (assignedSalesperson) {
-        queryParams.append("salesperson", assignedSalesperson);
-      }
-      if (companyName) {
-        queryParams.append("company", companyName);
-      }
-      const res1 = await fetch(`http://localhost:3000/item3?${queryParams.toString()}`);
-      const result = await res1.json();
-      setItems1(result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const [openForm1, setIsFormOpen1] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [filterStatus, lastActivity, assignedSalesperson, companyName]);
+    if (user) {
+      fetchdata();
+      fetchAssignee();
+    }
+  }, [user]);
+
+
+  const fetchdata = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/leads/item3");
+      const result = await res.json();
+      if (user?.role === "admin") {
+        setItems1(result);
+
+
+      } else {
+        const userTasks = result.filter(task => task.assignee === user?.name);
+        setItems1(userTasks);
+      }
+    } catch (error) { console.error("Fetch error:", error); }
+  };
+
+  const fetchAssignee = async () => {
+    try {
+      const data = await fetch("http://localhost:3000/api/leads/api/assignee/item");
+      const data1 = await data.json();
+      setAssigneeItem(data1);
+    } catch (error) { console.log(error); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+
+    if (editMode && selectedLead) {
+
+      const res = await fetch(`http://localhost:3000/lead/${selectedLead._id}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fullname, email, number, assignee })
+      });
+
+      const updatedLead = await res.json();
+
+
+
+      setItems1(prev =>
+        prev.map(item =>
+          item._id === updatedLead._id ? updatedLead : item
+        )
+      );
+
+
+      setSelectedLead(updatedLead);
+
+    } else {
+
       const res = await fetch("http://localhost:3000/lead", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fullname, email, number, linkdin, status }),
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fullname, email, number, assignee })
       });
-      if (res.ok) {
-        await fetchData();
-        setFullname("");
-        setEmail("");
-        setNumber("");
-        setLinkdin("");
-        setStatus("");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
+
+      const newLead = await res.json();
+
+
+      setItems1(prev => [newLead, ...prev]);
     }
+
+
+    setFullname("");
+    setEmail("");
+    setNumber("");
+    setAssignee("");
+    setEditMode(false);
+
+    setIsFormOpen(false);
+    setIsFormOpen1(false);
   };
 
-  const open = () => setIsFormOpen(true);
-  const closeForm = () => setIsFormOpen(false);
-  const openModel = () => setIsmodel(true);
-  const closeModel = () => setIsmodel(false);
 
-  const getPriorityColor = (status) => {
+
+
+
+
+  const getStatusColor = (status) => {
     switch (status) {
-      case "New":
-        return "inline-flex items-center rounded-full bg-blue-400/10 px-2.5 py-0.5 text-base font-medium text-blue-400 ring-1 ring-inset ring-blue-400/20";
-      case "Qualified":
-        return "inline-flex items-center rounded-full bg-green-400/10 px-2.5 py-0.5 text-base font-medium text-green-400 ring-1 ring-inset ring-green-400/20";
-      case "Contacted":
-        return "inline-flex items-center rounded-full bg-yellow-400/10 px-2.5 py-0.5 text-base font-medium text-yellow-400 ring-1 ring-inset ring-yellow-400/20";
-      case "Unresponsive":
-        return "inline-flex items-center rounded-full bg-slate-400/10 px-2.5 py-0.5 text-base font-medium text-slate-400 ring-1 ring-inset ring-slate-400/20";
+      case "NEW":
+        return "text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded font-bold";
+      case "CONTACTED":
+        return "text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded font-bold";
+      case "INTERESTED":
+        return "text-green-400 bg-green-400/10 px-2 py-0.5 rounded font-bold";
+      case "CLOSED":
+        return "text-red-400 bg-red-400/10 px-2 py-0.5 rounded font-bold";
+      case "Lost":
+        return "text-gray-400 bg-red-400/10 px-2 py-0.5 rounded font-bold";
       default:
-        return "bg-gray-200";
+        return "text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded font-bold";
     }
   };
 
-  const handleCheckboxChange = (filterName) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      [filterName]: !prev[filterName],
-    }));
-    const newFilterStatus = Object.keys(selectedFilters)
-      .filter((key) => selectedFilters[key])
-      .join(",");
-    setFilterStatus(newFilterStatus || "all");
+
+
+  const handleExcelUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("http://localhost:3000/api/leads/upload-excel", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        
+        setItems1(prev => [...result.leads, ...prev]);
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Excel upload failed");
+    }
   };
 
-  const clearFilters = () => {
-    setSelectedFilters({
-      New: false,
-      Contacted: false,
-      Qualified: false,
-      Unresponsive: false,
-    });
-    setFilterStatus("all");
-    setLastActivity("Any Time");
-    setAssignedSalesperson("");
-    setCompanyName("");
+
+
+
+
+  const timeAgo = (date) => {
+    if (!date) return "Just now";
+    const now = new Date();
+    const past = new Date(date);
+    const diff = Math.floor((now - past) / 1000);
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return past.toLocaleDateString();
   };
 
-  const filteredItems = items1;
+  const filteredItem = items1.filter((task) => {
+    const search = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      task.fullname?.toLowerCase().includes(search) ||
+      task.email?.toLowerCase().includes(search) ||
+      task.number?.includes(search);
+
+    const matchesStatus = statusFilter
+      ? task.status === statusFilter
+      : true;
+
+    return matchesSearch && matchesStatus;
+  });
+
 
   return (
-    <>
-      {/* Main Content */}
-      <div className="p-10 ml-95 w-300 bg-[#202124]">
-        {/* Header */}
-        <div className="flex justify-between">
-          <div className="space-y-4">
-            <p className="text-white font-bold text-4xl">Contact Database</p>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
-              Manage your leads and track sales progress.
-            </p>
+    <div className="min-h-screen bg-[#0f1113] ml-[340px] p-10 font-sans text-white">
+
+
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <h1 className="text-4xl font-black tracking-tight">Contact Database</h1>
+          <p className="text-slate-500 font-medium">Click a lead to view full information.</p>
+        </div>
+        <div className="flex gap-4">
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleExcelUpload}
+            className="hidden"
+            id="excelUpload"
+          />
+          {user?.role === "admin" && (
+            <label
+              htmlFor="excelUpload"
+              className="group relative flex items-center gap-3 cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-emerald-500/20 active:scale-95"
+            >
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20" height="20"
+                viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className="group-hover:-translate-y-1 transition-transform duration-300"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" x2="12" y1="3" y2="15" />
+              </svg>
+
+              <span className="tracking-wide"> Excel File</span>
+
+
+              <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </label>
+          )}
+
+
+          <div className="bg-[#1a1d21] border border-white/5 px-6 py-3 rounded-2xl shadow-xl">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Leads</p>
+            <h2 className="text-white text-2xl font-bold">{items1.length}</h2>
           </div>
-          <div className="flex items-center gap-10">
-            <div>
-              <p className="text-slate-600 dark:text-slate-400 text-lg font-bold">
-                Total Leads
-              </p>
-              <h1 className="text-white text-2xl ml-9">1,248</h1>
+
+        </div>
+      </div>
+
+
+      <div className="flex gap-4 items-center mb-8 bg-[#1a1d21]/50 p-3 rounded-3xl border border-white/5 backdrop-blur-md">
+        <div className="flex-1 flex items-center bg-[#0f1113] rounded-2xl border border-white/10 px-4 group focus-within:border-blue-500/50 transition-all">
+          <Search className="text-slate-600 group-focus-within:text-blue-500" size={20} />
+          <input
+            type="text"
+            placeholder="Search by name, email or number..."
+            className="w-full p-4 bg-transparent outline-none text-white text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {user?.role === "admin" && (
+          <button onClick={() => setIsFormOpen(true)} className="flex cursor-pointer items-center gap-2 px-8 h-[58px] bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+            <Plus size={20} /> Add New Lead
+          </button>
+        )}
+
+
+        <div className="flex flex-col gap-2">
+
+          <label className="text-xs font-semibold text-white/40 uppercase tracking-widest ml-1">
+            Filter by Status
+          </label>
+
+          <div className="relative group">
+
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-white/40 group-focus-within:text-blue-400 transition-colors">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
             </div>
-            <div className="flex flex-col items-end border-l border-[#283039] pl-6">
-              <p className="text-slate-600 dark:text-slate-400 text-lg font-bold">
-                This Month
-              </p>
-              <div className="flex text-blue-500 ml-7 items-center">
-                <Plus />
-                <h2 className="text-2xl">124</h2>
-              </div>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="appearance-none w-full bg-[#0f1113] border border-white/10 pl-11 pr-10 py-3 rounded-xl text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all hover:bg-white/5"
+            >
+              <option value="" className="bg-[#0f1113]">All Statuses</option>
+              <option value="NEW" className="bg-[#0f1113]">New Leads</option>
+              <option value="CONTACTED" className="bg-[#0f1113]">Contacted</option>
+              <option value="INTERESTED" className="bg-[#0f1113]">Interested</option>
+              <option value="CLOSED" className="bg-[#0f1113]">Closed</option>
+              <option value="Lost" className="bg-[#0f1113]">Lost</option>
+            </select>
+
+
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/30 group-hover:text-white/60">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex gap-10 items-center mt-13 justify-between">
-          <div className="flex items-center bg-[#283039] rounded-xl border border-gray-600 p-1 focus:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-            <button className="text-[#9cabba] pl-3 pr-0">
-              <Search />
-            </button>
-            <input
-              type="text"
-              placeholder="Search by name, email, or company"
-              className="w-170 p-2 focus:outline-none text-white"
-            />
-          </div>
-          <div className="flex items-center justify-center rounded-lg h-11 px-4 bg-[#283039] text-white gap-2 hover:bg-[#323b46] transition-colors border border-transparent hover:border-slate-600 p-5">
-            <SquareChartGantt />
-            <button onClick={openModel} className="font-bold">
-              Filters
-            </button>
-          </div>
-          <button
-            onClick={open}
-            className="flex bg-blue-500 p-4 font-bold text-white text-lg items-center gap-5 rounded-lg"
-          >
-            <Plus />
-            <p>Add New Lead</p>
-          </button>
-        </div>
 
-        {/* Filter Buttons */}
-        <div className="flex gap-5 mt-6">
-          <button
-            onClick={() => setFilterStatus("all")}
-            className={`flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${filterStatus === "all"
-                ? "bg-white text-slate-900"
-                : "bg-[#283039] text-white hover:bg-[#323b46]"
-              }`}
-          >
-            <span className="text-base font-bold">All Leads</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilters({ ...selectedFilters, New: true });
-              setFilterStatus("New");
-            }}
-            className={`flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${filterStatus === "New"
-                ? "bg-blue-400/20 text-blue-400"
-                : "bg-[#283039] text-white hover:bg-[#323b46]"
-              }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-            <span className="text-base font-medium">New</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilters({ ...selectedFilters, Contacted: true });
-              setFilterStatus("Contacted");
-            }}
-            className={`flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${filterStatus === "Contacted"
-                ? "bg-yellow-400/20 text-yellow-400"
-                : "bg-[#283039] text-white hover:bg-[#323b46]"
-              }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-            <span className="text-base font-medium">Contacted</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilters({ ...selectedFilters, Qualified: true });
-              setFilterStatus("Qualified");
-            }}
-            className={`flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${filterStatus === "Qualified"
-                ? "bg-green-400/20 text-green-400"
-                : "bg-[#283039] text-white hover:bg-[#323b46]"
-              }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-green-400"></span>
-            <span className="text-base font-medium">Qualified</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilters({ ...selectedFilters, Unresponsive: true });
-              setFilterStatus("Unresponsive");
-            }}
-            className={`flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${filterStatus === "Unresponsive"
-                ? "bg-slate-400/20 text-slate-400"
-                : "bg-[#283039] text-white hover:bg-[#323b46]"
-              }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-red-400"></span>
-            <span className="text-base font-medium">Unresponsive</span>
-          </button>
-        </div>
 
-        {/* Table Headers */}
-        <div className="flex gap-40 mt-15">
-          <p className="text-base font-bold text-[#9cabba] uppercase">Name</p>
-          <p className="text-base font-bold text-[#9cabba] uppercase">
-            Contact Info
-          </p>
-          <p className="text-base font-bold text-[#9cabba] uppercase">
-            Lead Status
-          </p>
-          <p className="text-base font-bold text-[#9cabba] uppercase">Social</p>
-          <p className="text-base font-bold text-[#9cabba] uppercase">
-            Last Activity
-          </p>
-        </div>
 
-        {/* Table Rows */}
-        <div className="space-y-6 mt-10 ml-[-10px]">
-          {filteredItems.map((item) => (
+      </div>
+
+      <div className="flex gap-6 items-start">
+
+
+        <div className={`transition-all duration-500 space-y-4 ${selectedLead ? 'w-1/2' : 'w-full'}`}>
+          {filteredItem.map((item) => (
             <div
               key={item._id}
-              className="flex flex-wrap items-center gap-4 w-280 bg-gray-800 p-4 rounded-xl"
+              onClick={() => setSelectedLead(item)}
+              className={`group flex items-center gap-100 justify-between p-5 rounded-[2rem] border transition-all duration-300 cursor-pointer ${selectedLead?._id === item._id
+                ? 'bg-blue-600/10 border-blue-500 ring-1 ring-blue-500/20'
+                : 'bg-[#1a1d21] border-white/5 hover:bg-[#1e2227] hover:border-blue-500/30'
+                }`}
             >
-              <div className="flex-1 min-w-[200px] ml-[-10px]">
-                <h2 className="text-white text-lg font-medium">{item.fullname}</h2>
-                <p className="text-[#9cabba] text-sm">Tech Solutions Inc.</p>
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[250px]">
-                <div className="flex items-center gap-2">
-                  <Mail className="text-[#9cabba] w-5 h-5" />
-                  <p className="text-white text-lg">{item.email}</p>
+              <div className="flex items-center gap-5 ">
+                <div className={`h-14 w-14 rounded-2xl flex items-center justify-center text-white font-black text-xl border border-white/10 transition-all ${selectedLead?._id === item._id ? 'bg-blue-600' : 'bg-slate-800'}`}>
+                  {item.fullname?.charAt(0)}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="text-[#9cabba] w-5 h-5" />
-                  <p className="text-[#9cabba] text-lg">{item.number}</p>
+                <div>
+                  <h2 className="text-white text-lg font-bold group-hover:text-blue-400 transition-colors">{item.fullname}</h2>
+                  <p className="text-xs text-slate-500 font-medium">{item.email}</p>
+
+
+                </div>
+                <div >
+
+
                 </div>
               </div>
-              <div className="flex-1 min-w-[120px]">
-                <span className={getPriorityColor(item.status)}>{item.status}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-1 min-w-[200px] ml-20">
-                <Link2 className="text-[#9cabba] w-5 h-5" />
-                <p className="text-[#9cabba] text-lg">{item.linkdin}</p>
-              </div>
-              <div className="flex-1 min-w-[100px] ml-10">
-                <h2 className="text-[#9cabba] text-lg">2 hours ago</h2>
+              <div className="flex gap-10">
+                <p className={`text-xs font-medium ${getStatusColor(item.status)}`}>
+                  {item.status}
+                </p>
+
+                <ChevronRight size={20} className={`text-slate-600 transition-transform ${selectedLead?._id === item._id ? 'translate-x-1 text-blue-500' : ''}`} />
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Add Lead Form */}
-      {openForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="fixed top-0 left-0 w-full h-full backdrop-blur-sm z-40 justify-center items-center flex"
-        >
-          <div className="w-150 h-160 rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all">
-            <div className="ml-10 mt-10">
-              <div className="flex gap-80 items-center space-y-6">
-                <p className="text-white font-bold text-2xl items-center">
-                  Add Quick Task
-                </p>
-                <CircleX
-                  onClick={closeForm}
-                  className="text-[#9cabba] hover:text-white transition-colors mb-4"
-                />
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">
-                  FULL NAME
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. John Doe"
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={fullname}
-                  onChange={(e) => setFullname(e.target.value)}
-                />
-                <div className="flex gap-10">
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="john@example.com"
-                      className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      PHONE NUMBER
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="+91 000 0000"
-                      className="w-60 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                      value={number}
-                      onChange={(e) => setNumber(e.target.value)}
-                    />
-                  </div>
+
+        {selectedLead && (
+          <div className="w-1/2 sticky top-10 bg-[#1a1d21] border border-white/10 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-right-10 duration-300 shadow-2xl">
+
+            <div className="h-28 bg-gradient-to-r from-blue-600 to-indigo-700 relative">
+              <button onClick={() => setSelectedLead(null)} className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 rounded-full transition-all">
+                <X size={20} />
+              </button>
+              <div className="absolute -bottom-10 left-8 h-24 w-24 bg-[#0f1113] rounded-3xl p-1">
+                <div className="h-full w-full bg-slate-800 rounded-[1.2rem] flex items-center justify-center text-3xl font-black text-blue-500 border border-white/5">
+                  {selectedLead.fullname?.charAt(0)}
                 </div>
-                <label className="block text-white font-medium mb-2">
-                  LINKDIN URL
-                </label>
-                <input
-                  type="text"
-                  placeholder="linkedin.com/in/username"
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={linkdin}
-                  onChange={(e) => setLinkdin(e.target.value)}
-                />
-                <label className="block text-white font-medium mb-2 uppercase">
-                  Initial Status
-                </label>
-                <select
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="">Select Initial Status</option>
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="Qualified">Qualified</option>
-                  <option value="Unresponsive">Unresponsive</option>
-                </select>
-                <button
-                  type="submit"
-                  className="w-130 p-3 rounded-xl bg-blue-500 text-white"
-                >
-                  Submit
-                </button>
+              </div>
+            </div>
+
+            {/* Detail Body */}
+            <div className="pt-16 p-8 space-y-8">
+              <div>
+                <h2 className="text-3xl font-black text-white">{selectedLead.fullname}</h2>
+                <span className="flex items-center gap-2 text-slate-500 text-xs mt-1 font-bold">
+                  <Clock size={14} /> Created {timeAgo(selectedLead.createdAt)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+
+                <div className="col-span-2 flex justify-between items-center px-1">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lead Details</span>
+                  <p className={`text-xs font-medium ${getStatusColor(selectedLead.status)}`}>
+                    {selectedLead.status}
+                  </p>
+                </div>
+
+
+                <div className="bg-[#0f1113] p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email</p>
+                  <p className="text-sm font-medium text-slate-200 truncate">{selectedLead.email}</p>
+                </div>
+
+
+                <div className="bg-[#0f1113] p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Phone</p>
+                  <p className="text-sm font-medium text-slate-200">{selectedLead.number}</p>
+                </div>
+
+
+                <div className="bg-[#0f1113] p-4 rounded-2xl border border-white/5 col-span-2 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Assignee</p>
+                    <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                      <User size={14} strokeWidth={3} /> {selectedLead.assignee || "Unassigned"}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+
+              <div className="flex gap-3">
+                {user?.role === "admin" ? (
+
+                  <button onClick={() => {
+                    setEditMode(true);
+                    setSelectedLead(selectedLead);
+                    setIsFormOpen1(true);
+
+                    setFullname(selectedLead.fullname);
+                    setEmail(selectedLead.email);
+                    setNumber(selectedLead.number);
+                    setAssignee(selectedLead.assignee || "");
+                  }} className="flex-1 cursor-pointer bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+                    <Edit3 size={18} /> Edit Lead
+                  </button>
+                ) : (
+
+                  <>
+                    <button
+                      onClick={() => window.location.href = `tel:${selectedLead.number}`}
+                      className="flex-1 bg-white text-black font-black py-4 rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Phone size={18} /> Call
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://wa.me/${selectedLead.number.replace(/\D/g, '')}`)}
+                      className="p-4 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-2xl hover:bg-emerald-500/20 transition-all"
+                    >
+                      <MessageSquare size={20} />
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${selectedLead.email}`)}
+                      className="p-4 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all"
+                    >
+                      <Mail size={20} />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
-        </form>
-      )}
+        )}
+      </div>
 
-      {/* Filter Modal */}
-      {ismodel && (
-        <div className="fixed top-0 left-0 w-full h-full backdrop-blur-sm z-40 justify-center items-center flex">
-          <div className="w-150 h-160 rounded-xl bg-[#1a1d21] border border-[#283039] shadow-2xl transition-all">
-            <div className="ml-10 mt-10">
-              <div className="flex gap-80 items-center space-y-6">
-                <p className="text-white font-bold text-2xl">Filter Leads</p>
-                <CircleX
-                  onClick={closeModel}
-                  className="text-[#9cabba] hover:text-white transition-colors mb-4"
-                />
-              </div>
-              <div className="space-y-6">
-                <div className="flex justify-around">
-                  <label className="flex items-center text-base text-white">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.New}
-                      onChange={() => handleCheckboxChange("New")}
-                      className="mr-2 scale-150"
-                    />
-                    New
-                  </label>
-                  <label className="flex items-center text-base text-white">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.Contacted}
-                      onChange={() => handleCheckboxChange("Contacted")}
-                      className="mr-2 scale-150"
-                    />
-                    Contacted
-                  </label>
-                </div>
-                <div className="flex justify-around">
-                  <label className="flex items-center text-base text-white">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.Qualified}
-                      onChange={() => handleCheckboxChange("Qualified")}
-                      className="mr-2 scale-150"
-                    />
-                    Qualified
-                  </label>
-                  <label className="flex items-center text-base text-white">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.Unresponsive}
-                      onChange={() => handleCheckboxChange("Unresponsive")}
-                      className="mr-2 scale-150"
-                    />
-                    Unresponsive
-                  </label>
-                </div>
-              </div>
-              <div className="space-y-7">
-                <label className="block text-white font-medium mb-2">
-                  Last Activity
-                </label>
-                <select
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={lastActivity}
-                  onChange={(e) => setLastActivity(e.target.value)}
-                >
-                  <option value="Any Time">Any Time</option>
-                  <option value="Last 7 Days">Last 7 Days</option>
-                  <option value="Last 30 Days">Last 30 Days</option>
-                </select>
-                <label className="block text-white font-medium mb-2">
-                  COMPANY NAME
-                </label>
-                <input
-                  type="text"
-                  placeholder="Filter by company name"
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                />
-                <label className="block text-white font-medium mb-2">
-                  Assigned Salesperson
-                </label>
-                <select
-                  className="w-130 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:border-blue-500 focus:outline-none text-white"
-                  value={assignedSalesperson}
-                  onChange={(e) => setAssignedSalesperson(e.target.value)}
-                >
-                  <option value="">All Salespersons</option>
-                  <option value="John Doe">John Doe</option>
-                  <option value="Jane Smith">Jane Smith</option>
-                </select>
-              </div>
-              <div className="flex justify-around ml-[-30px] gap- mt-10">
-                <button
-                  onClick={clearFilters}
-                  className="w-60 p-3 rounded-xl bg-gray-500 text-white"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => {
-                    closeModel();
-                    fetchData();
-                  }}
-                  className="w-60 p-3 rounded-xl bg-blue-500 text-white"
-                >
-                  Apply Filters
-                </button>
-              </div>
+
+      {openForm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-[#1a1d21] w-full max-w-lg rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-blue-600/10 to-transparent">
+              <h2 className="text-2xl font-black text-white ">Add New Lead</h2>
+              <X onClick={() => setIsFormOpen(false)} className="text-slate-500 hover:text-white cursor-pointer" />
             </div>
+            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+              <input required placeholder="Full Name" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={fullname} onChange={e => setFullname(e.target.value)} />
+              <input required type="email" placeholder="Email Address" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={email} onChange={e => setEmail(e.target.value)} />
+              <input required placeholder="Phone Number" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={number} onChange={e => setNumber(e.target.value)} />
+              <select className="w-full cursor-pointer bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={assignee} onChange={e => setAssignee(e.target.value)}>
+                <option value="">Select Assignee</option>
+                {assigneeItem.map(a => <option key={a._id} value={a.name}>{a.name}</option>)}
+              </select>
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-2xl text-white font-bold shadow-xl shadow-blue-600/20 transition-all cursor-pointer">Create Lead Profile</button>
+            </form>
           </div>
         </div>
       )}
-    </>
+
+
+
+
+
+
+      {openForm1 && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-[#1a1d21] w-full max-w-lg rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-blue-600/10 to-transparent">
+              <h2 className="text-2xl font-black text-white ">Add New Lead</h2>
+              <X onClick={() => setIsFormOpen1(false)} className="text-slate-500 hover:text-white cursor-pointer" />
+            </div>
+            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+              <input required placeholder="Full Name" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={fullname} onChange={e => setFullname(e.target.value)} />
+              <input required type="email" placeholder="Email Address" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={email} onChange={e => setEmail(e.target.value)} />
+              <input required placeholder="Phone Number" className="w-full bg-[#0f1113] border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={number} onChange={e => setNumber(e.target.value)} />
+              <select className="w-full bg-[#0f1113] cursor-pointer border border-white/5 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50" value={assignee} onChange={e => setAssignee(e.target.value)}>
+                <option value="">Select Assignee</option>
+                {assigneeItem.map(a => <option key={a._id} value={a.name}>{a.name}</option>)}
+              </select>
+              <button type="submit" className="cursor-pointer w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-2xl text-white font-bold shadow-xl shadow-blue-600/20 transition-all">Update Lead </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
