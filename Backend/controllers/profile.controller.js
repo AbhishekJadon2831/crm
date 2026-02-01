@@ -1,6 +1,6 @@
 import StudentsModel from "../models/Students.model.js";
 
-export const Profile= async (req, res) => {
+export const Profile = async (req, res) => {
   try {
     const user = await StudentsModel.findById(req.userId);
 
@@ -23,3 +23,6 @@ export const Profile= async (req, res) => {
     res.status(500).json({ message: "Profile fetch failed" });
   }
 };
+
+
+

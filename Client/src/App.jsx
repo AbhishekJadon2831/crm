@@ -1,42 +1,30 @@
-// import { useState } from 'react'
+import "./App.css";
 
-import './App.css'
+import Register from "./components/Register";
+import { Routes, Route } from "react-router-dom";
+import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
+import Contact from "./components/Contact";
+import Pipeline from "./components/Pipeline";
+import { ToastContainer } from "react-toastify";
+import Setting from "./components/Setting";
+import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Reset from "./components/ResetPass";
+import Home from "./components/Home";
 
-import Register from './components/Register';
-import { Routes, Route } from 'react-router-dom';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-
-import Contact from './components/Contact';
-import Pipeline from './components/Pipeline';
-
-import { ToastContainer } from 'react-toastify';
-import Setting from './components/Setting';
-
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
-
-import Reset from './components/ResetPass';
-import Home from './components/Home';
-import { useAuth } from './components/Context/AuthContext';
-
-
-
-
-
+import { useAuth } from "./components/Context/AuthContext";
+import Loader from "./components/Loader"; // 🔥 ADD THIS
 
 function App() {
-
-  const { user } = useAuth()
-
-
-
-
-
+  const { loading } = useAuth(); // 🔥 ONLY loading needed
 
   return (
     <>
       <ToastContainer />
+
+      
+      {loading && <Loader />}
 
       <Routes>
         <Route path="/Login" element={<Login />} />
@@ -53,12 +41,8 @@ function App() {
           </Route>
         </Route>
       </Routes>
-
-
-
-
     </>
-  )
+  );
 }
 
-export default App
+export default App;

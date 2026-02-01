@@ -11,15 +11,47 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [fileName, setFileName] = useState('No file chosen');
+  const [editData, setEditData] = useState({
+    name: "",
+    lastname: "",
+    workEmail: "",
+    bio: "",
+  });
+
+
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || "",
+        lastname: user.lastname || "",
+        workEmail: user.workEmail || "",
+        bio: user.bio || "",
+      });
+    }
+  }, [user]);
+
+    useEffect(() => {
+      
+    
+    setTimeout(() => {
+      setLoading(false); 
+    }, 1000); 
+  }, []);
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetchProfile(token);
+      
+
       setIsLoggedIn(true);
-    } else {
+    } else if (!token) {
+      navigate("/register");
+    }
+    else {
       setLoading(false);
     }
+    fetchProfile(token)
   }, []);
 
 
@@ -34,6 +66,8 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       if (data?.user) {
         setUser(data.user);
+
+
       } else {
         setIsLoggedIn(false);
       }
@@ -45,20 +79,21 @@ export const AuthProvider = ({ children }) => {
 
 
 
-  const login = (token) => {
+  const login = async (token) => {
     localStorage.setItem("token", token);
     setIsLoggedIn(true);
-    fetchProfile(token);
-    console.log(user?.role);
-    
-    if (user?.role === "admin") {
+
+    if(user?.role==="admin"){
       navigate("/Dashboard")
-    } else {
-      navigate("/Home")
+    }else{
+      navigate("Home")
     }
 
+     
 
+    
   };
+
 
   const logout = () => {
     setUser(null);
@@ -83,17 +118,25 @@ export const AuthProvider = ({ children }) => {
 
       const data = await res.json();
 
+
+
       if (data) {
 
         setUser(prevUser => ({
           ...prevUser,
           image1: data.profileImage,
         }));
+
+
       }
     } catch (err) {
       console.error("Error updating image:", err);
     }
   };
+
+
+
+
 
 
   return (
@@ -107,7 +150,10 @@ export const AuthProvider = ({ children }) => {
         logout,
         login,
         loading,
-        fileName, setFileName
+        fileName, setFileName,
+        editData,
+        setEditData,
+        
       }}
     >
       {children}

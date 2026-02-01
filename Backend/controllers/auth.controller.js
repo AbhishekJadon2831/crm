@@ -134,3 +134,7 @@ export const ResetPass= async (req, res) => {
   return res.status(200).json({ message: "chnage succesfull" })
 
 }
+
+
+
+

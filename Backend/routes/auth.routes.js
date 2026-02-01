@@ -14,5 +14,6 @@ router.post("/login", login);
 router.patch("/resetpass", ResetPass);
 router.get("/profile", authenticateJWT, Profile);
 router.put("/update-image", authenticateJWT, upload.single("profilePic"),Updateimage);
+ 
 
 export default router;

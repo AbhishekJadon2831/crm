@@ -2,9 +2,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./Context/AuthContext";
 import { LogOut, Camera, Mail, User, ShieldCheck, PenLine } from "lucide-react";
 
+
 function Setting() {
-    const { user, logout, updateImage } = useAuth();
+    const { user, logout, updateImage, editData, setEditData } = useAuth();
     const navigate = useNavigate();
+    console.log(user);
+
+
+
+
+
+
+
 
     if (!user) {
         return (
@@ -29,7 +38,7 @@ function Setting() {
         }
     };
 
-    const resetpassword =()=>{
+    const resetpassword = () => {
         navigate("/reset")
     }
 
@@ -38,17 +47,22 @@ function Setting() {
         navigate("/login");
     };
 
+    const handleChange = (e) => {
+        setEditData({ ...editData, [e.target.name]: e.target.value });
+    };
+
+
     return (
         <div className="min-h-screen bg-[#0f1113] text-slate-200 ml-72">
             <div className="p-8 lg:p-12 max-w-5xl mx-auto">
-                
-                {/* PAGE HEADER */}
+
+
                 <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-8">
                     <div>
                         <h1 className="text-4xl font-black text-white tracking-tight">Settings</h1>
                         <p className="text-slate-500 mt-2 font-medium">Manage your digital identity and account security.</p>
                     </div>
-                    <button 
+                    <button
                         onClick={log}
                         className="flex items-center gap-2 px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all active:scale-95"
                     >
@@ -58,8 +72,8 @@ function Setting() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* LEFT COLUMN: AVATAR & QUICK INFO */}
+
+
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-[#1a1d21] border border-white/5 rounded-3xl p-8 flex flex-col items-center text-center">
                             <div className="relative group cursor-pointer">
@@ -73,10 +87,10 @@ function Setting() {
                                 </label>
                                 <input type="file" id="fileInput" onChange={changeImage} className="hidden" />
                             </div>
-                            
+
                             <h2 className="mt-6 text-2xl font-bold text-white">{user.name} {user.lastname}</h2>
                             <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">Enterprise User</p>
-                            
+
                             <div className="w-full mt-8 pt-6 border-t border-white/5 space-y-4">
                                 <div className="flex items-center gap-3 text-slate-400 text-sm">
                                     <Mail size={16} className="text-slate-600" />
@@ -97,21 +111,33 @@ function Setting() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">First Name</label>
-                                    <div className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold">
-                                        {user.name}
-                                    </div>
+                                    <input
+                                        name="name"
+                                        value={editData.name}
+                                        onChange={handleChange}
+                                        className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold w-full"
+                                    />
+
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Last Name</label>
-                                    <div className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold">
-                                        {user.lastname}
-                                    </div>
+                                    <input
+                                        name="lastname"
+                                        value={editData.lastname}
+                                        onChange={handleChange}
+                                        className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold w-full"
+                                    />
+
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Work Email</label>
-                                    <div className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold">
-                                        {user.workEmail}
-                                    </div>
+                                    <input
+                                        name="workEmail"
+                                        value={editData.workEmail}
+                                        onChange={handleChange}
+                                        className="bg-[#0f1113] border border-white/5 text-white rounded-2xl p-4 font-bold w-full"
+                                    />
+
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 flex justify-between items-center">
@@ -126,11 +152,13 @@ function Setting() {
                             </div>
 
                             <div onClick={resetpassword} className="mt-10  pt-8 border-t border-white/5 flex flex-wrap gap-4">
-                               
+
                                 <button className="px-6 py-3 bg-white/5 cursor-pointer text-slate-300 border border-white/10 font-bold rounded-xl hover:bg-white/10 transition-all text-sm">
                                     Reset Password
                                 </button>
                             </div>
+
+
                         </div>
 
                         {/* ADDITIONAL SECTION (Optional) */}
